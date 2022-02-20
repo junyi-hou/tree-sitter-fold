@@ -4,7 +4,7 @@
 ;;
 ;; Author: Junyi Hou <junyi.yi.hou@gmail.com>
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "25.1") (tree-sitter "0.15.1"))
+;; Package-Requires: ((emacs "25.1") (tree-sitter "0.15.1") (dash "2.19.0"))
 ;; SPDX-License-Identifier: MIT
 
 ;;; Commentary:
@@ -18,7 +18,7 @@
 ;;; Code:
 
 (require 'tree-sitter)
-(require 'seq)
+(require 'dash)
 
 ;; =============
 ;; customization
@@ -111,8 +111,8 @@ This function is borrowed from `tree-sitter-node-at-point'."
 
 (defun tree-sitter-fold--get-fold-range (node)
   "Return the beginning (as buffer position) of fold for NODE."
-  (if-let* ((fold-alist (alist-get major-mode tree-sitter-fold-range-alist))
-            (fn (alist-get (tsc-node-type node) fold-alist)))
+  (-if-let* ((fold-alist (alist-get major-mode tree-sitter-fold-range-alist))
+             (fn (alist-get (tsc-node-type node) fold-alist)))
       (if (functionp fn)
           (funcall fn node)
         (user-error
@@ -136,15 +136,15 @@ This function is borrowed from `tree-sitter-node-at-point'."
 
 (defun tree-sitter-fold-overlay-at (node)
   "Return the tree-sitter-fold overlay at NODE if NODE is foldable and folded.  Return nil otherwise."
-  (when-let* ((foldable-types (alist-get major-mode tree-sitter-fold-foldable-node-alist))
-              (_ (memq (tsc-node-type node) foldable-types))
-              (range (tree-sitter-fold--get-fold-range node)))
-      (thread-last (overlays-in (car range) (cdr range))
-        (seq-filter (lambda (ov)
-                      (and (eq (overlay-get ov 'invisible) 'tree-sitter-fold)
-                           (= (overlay-start ov) (car range))
-                           (= (overlay-end ov) (cdr range)))))
-        car)))
+  (-when-let* ((foldable-types (alist-get major-mode tree-sitter-fold-foldable-node-alist))
+               (_ (memq (tsc-node-type node) foldable-types))
+               (range (tree-sitter-fold--get-fold-range node)))
+    (thread-last (overlays-in (car range) (cdr range))
+      (seq-filter (lambda (ov)
+                    (and (eq (overlay-get ov 'invisible) 'tree-sitter-fold)
+                         (= (overlay-start ov) (car range))
+                         (= (overlay-end ov) (cdr range)))))
+      car)))
 
 ;; ========
 ;; commands
@@ -165,7 +165,7 @@ Foldable nodes are defined in `tree-sitter-fold-foldable-node-alist' for the cur
   (tree-sitter-fold--ensure-ts
     (let ((node (or node (tree-sitter-fold--foldable-node-at-pos))))
       ;; make sure I do not create multiple overlays for the same fold
-      (when-let* ((ov (tree-sitter-fold-overlay-at node)))
+      (-when-let* ((ov (tree-sitter-fold-overlay-at node)))
         (delete-overlay ov))
       (tree-sitter-fold--create-overlay (tree-sitter-fold--get-fold-range node)))))
 
@@ -174,8 +174,8 @@ Foldable nodes are defined in `tree-sitter-fold-foldable-node-alist' for the cur
 If the current node is not folded or not foldable, do nothing."
   (interactive)
   (tree-sitter-fold--ensure-ts
-    (when-let* ((node (tree-sitter-fold--foldable-node-at-pos))
-                (ov (tree-sitter-fold-overlay-at node)))
+    (-when-let* ((node (tree-sitter-fold--foldable-node-at-pos))
+                 (ov (tree-sitter-fold-overlay-at node)))
       (delete-overlay ov))))
 
 (defun tree-sitter-fold-open-recursively ()
