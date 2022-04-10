@@ -33,6 +33,10 @@
   '((python-mode . (function_definition class_definition)) ;
     (go-mode . (type_declaration function_declaration method_declaration))
     (ess-r-mode . (brace_list))
+    (rust-mode . (struct_item enum_item function_item trait_item impl_item
+		  match_expression mod_item macro_definition macro_invocation))
+    (rustic-mode . (struct_item enum_item function_item trait_item impl_item
+		    match_expression mod_item macro_definition macro_invocation))
     (nix-mode . (attrset function)))
   "An alist of (mode . (list of tree-sitter-nodes considered foldable in this mode))."
   :type '(alist :key-type symbol :value-type (repeat symbol))
@@ -44,6 +48,24 @@
     (ess-r-mode . ((brace_list . tree-sitter-fold-range-r)))
     (nix-mode . ((attrset . tree-sitter-fold-range-nix-attrset)
                  (function . tree-sitter-fold-range-nix-function)))
+    (rust-mode . ((struct_item . tree-sitter-fold-range-rust)
+		  (enum_item . tree-sitter-fold-range-rust)
+		  (function_item . tree-sitter-fold-range-rust)
+		  (trait_item . tree-sitter-fold-range-rust)
+		  (impl_item . tree-sitter-fold-range-rust)
+		  (match_expression . tree-sitter-fold-range-rust)
+		  (mod_item . tree-sitter-fold-range-rust)
+		  (macro_definition . tree-sitter-fold-range-rust-macro)
+		  (macro_invocation . tree-sitter-fold-range-rust)))
+    (rustic-mode . ((struct_item . tree-sitter-fold-range-rust)
+		    (enum_item . tree-sitter-fold-range-rust)
+		    (function_item . tree-sitter-fold-range-rust)
+		    (trait_item . tree-sitter-fold-range-rust)
+		    (impl_item . tree-sitter-fold-range-rust)
+		    (match_expression . tree-sitter-fold-range-rust)
+		    (mod_item . tree-sitter-fold-range-rust)
+		    (macro_definition . tree-sitter-fold-range-rust-macro)
+		    (macro_invocation . tree-sitter-fold-range-rust)))
     (go-mode . ((type_declaration . tree-sitter-fold-range-go-type-declaration)
                 (function_declaration . tree-sitter-fold-range-go-method)
                 (method_declaration . tree-sitter-fold-range-go-method))))
@@ -235,6 +257,41 @@ If the current syntax node is not foldable, do nothing."
          (beg (tsc-node-end-position (tsc-get-next-sibling named-node)))
          (end (tsc-node-end-position node)))
     (cons beg end)))
+
+(defun tree-sitter-fold-range-rust (node)
+  "Return the fold range for foldable NODE in Rust.
+Foldable node-types are `struct-item', `enum_item', `function-item',`trait_item',
+`impl_item', `mod_item', `macro_invocation' and `match_expression'."
+  (let ((current_node (tsc-get-nth-child node 0))
+	(result nil))
+    (while (not (eq current_node nil))
+      (if (or (eq (tsc-node-type current_node) 'field_declaration_list)
+	      (eq (tsc-node-type current_node) 'ordered_first_declaration_list)
+	      (eq (tsc-node-type current_node) 'enum_variant_list)
+	      (eq (tsc-node-type current_node) 'block)
+	      ;; for impl, mod and trait items
+	      (eq (tsc-node-type current_node) 'declaration_list)
+	      (eq (tsc-node-type current_node) 'token_tree)
+	      ;; match block won't fold semicolon in the end, so it makes clear
+	      ;; if it is present at the end of the statement even when folded
+	      (eq (tsc-node-type current_node) 'match_block))
+	  (let ((beg (tsc-node-start-position current_node))
+		(end (tsc-node-end-position current_node)))
+	    (setq current_node nil)
+	    (setq result (cons beg end)))
+	(setq current_node (tsc-get-next-sibling current_node))))
+    result))
+
+(defun tree-sitter-fold-range-rust-macro (node)
+  "Return the fold range for `macro_definition' NODE in Rust."
+  (let* ((children (tsc-count-children node))
+	(result nil)
+	(last_bracket (tsc-get-nth-child node (- children 1)))
+	(first_bracket (tsc-get-nth-child node 2)))
+    (setq result (cons
+		  (tsc-node-start-position first_bracket)
+		  (+ 1 (tsc-node-start-position last_bracket))))
+    result))
 
 (defun tree-sitter-fold-range-r (node)
   "Return the fold range for `brace_list' NODE in R."
