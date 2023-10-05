@@ -1,3 +1,7 @@
+* Emacs-29
+
+Please use the ~switch-to-treesit~ branch for ~emacs-29~ and above with the builtin tree-sitter library ~treesit~.
+
 * Introduction
 
 ~tree-sitter-fold~ builds on top of [[https://github.com/ubolonton/emacs-tree-sitter][emacs-tree-sitter]] to provide code folding base on the tree-sitter syntax tree.
