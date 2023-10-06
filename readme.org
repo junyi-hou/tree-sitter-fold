@@ -49,14 +49,13 @@ This variable determines how ~tree-sitter-fold~ should fold each of the nodes de
 * Supported languages
 
 - python
-- R
 - Nix
 - Go (thanks to [[https://github.com/jakejx][jakejx]])
 - contribution of other languages are welcomed!
 
 * Contribution
 
-A good place to start is the [[https://github.com/emacs-mirror/emacs/blob/master/admin/notes/tree-sitter/starter-guide][official treesit document]], where you can read about how to query grammar nodes in tree-sitter. Once you understand how to query, you can add new entries in ~tree-sitter-fold-foldable-node-alist~ and ~tree-sitter-fold-range-alist~ to include the folding rule of the new language.
+A good place to start is the [[https://github.com/emacs-mirror/emacs/blob/master/admin/notes/tree-sitter/starter-guide][official treesit document]], where you can read about how to query grammar nodes in tree-sitter. In addition, ~treesit-explore-mode~ can come in handy in terms of seeing the live grammar tree of a script file. Once you understand how to query, you can add new entries in ~tree-sitter-fold-foldable-node-alist~ and ~tree-sitter-fold-range-alist~ to include the folding rule of the new language.
 
 * Note on installing additional grammars
 

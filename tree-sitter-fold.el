@@ -30,9 +30,8 @@
 
 (defcustom tree-sitter-fold-foldable-node-alist
   '((python-ts-mode . ("function_definition" "class_definition")) ;
-    (go-mode . ("type_declaration" "function_declaration" "method_declaration"))
-    (ess-r-mode . ("brace_list"))
-    (nix-mode . ("attrset" "function")))
+    (go-ts-mode . ("type_declaration" "function_declaration" "method_declaration"))
+    (nix-ts-mode . ("rec_attrset_expression" "attrset_expression" "function_expression")))
   "An alist of (mode . (list of tree-sitter-nodes considered foldable in this mode))."
   :type '(alist :key-type symbol :value-type (repeat string))
   :group 'tree-sitter-fold)
@@ -40,12 +39,12 @@
 (defcustom tree-sitter-fold-range-alist
   '((python-ts-mode . (("function_definition" . tree-sitter-fold-range-python)
                        ("class_definition" . tree-sitter-fold-range-python)))
-    (ess-r-mode . (("brace_list" . tree-sitter-fold-range-r)))
-    (nix-mode . (("attrset" . tree-sitter-fold-range-nix-attrset)
-                 ("function" . tree-sitter-fold-range-nix-function)))
-    (go-mode . (("type_declaration" . tree-sitter-fold-range-go-type-declaration)
-                ("function_declaration" . tree-sitter-fold-range-go-method)
-                ("method_declaration" . tree-sitter-fold-range-go-method))))
+    (nix-ts-mode . (("rec_attrset_expression" . tree-sitter-fold-range-nix-attrset)
+                    ("attrset_expression" . tree-sitter-fold-range-nix-attrset)
+                    ("function_expression" . tree-sitter-fold-range-nix-function)))
+    (go-ts-mode . (("type_declaration" . tree-sitter-fold-range-go-type-declaration)
+                   ("function_declaration" . tree-sitter-fold-range-go-method)
+                   ("method_declaration" . tree-sitter-fold-range-go-method))))
   "An alist of (major-mode . (foldable-node-type . function)).
 FUNCTION is used to determine where the beginning and end for FOLDABLE-NODE-TYPE
 in MAJOR-MODE.  It should take a single argument (the syntax node with type
@@ -227,16 +226,14 @@ If the current syntax node is not foldable, do nothing."
          (end (treesit-node-end node)))
     (cons beg end)))
 
-(defun tree-sitter-fold-range-r (node)
-  "Return the fold range for `brace_list' NODE in R."
-  (let ((beg (treesit-node-end (treesit-node-child node 0)))
-        (end (1- (treesit-node-end node))))
-    (cons beg end)))
-
 (defun tree-sitter-fold-range-nix-attrset (node)
-  "Return the fold range for `attrset' NODE in Nix express language."
-  (let ((beg (treesit-node-end (treesit-node-child node 0)))
-        (end (1- (treesit-node-end node))))
+  "Return the fold range for `attrset_expression' and `rec_attrset_expression' NODE in Nix."
+  (let* ((first-child-node (treesit-node-child node 0))
+         ;; first child can be rec or {
+         (beg (if (string= "rec" (treesit-node-type first-child-node))
+                  (treesit-node-end (treesit-node-child node 1))
+                (treesit-node-end first-child-node)))
+         (end (1- (treesit-node-end node))))
     (cons beg end)))
 
 (defun tree-sitter-fold-range-nix-function (node)
