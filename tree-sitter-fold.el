@@ -105,7 +105,7 @@ This function is borrowed from `tree-sitter-node-at-point'."
 (defun tree-sitter-fold--get-fold-range (node)
   "Return the beginning (as buffer position) of fold for NODE."
   (-if-let* ((fold-alist (alist-get major-mode tree-sitter-fold-range-alist))
-             (fn (alist-get (treesit-node-type node) fold-alist)))
+             (fn (alist-get (treesit-node-type node) fold-alist nil nil #'string=)))
       (if (functionp fn)
           (funcall fn node)
         (user-error
@@ -130,7 +130,7 @@ This function is borrowed from `tree-sitter-node-at-point'."
 (defun tree-sitter-fold-overlay-at (node)
   "Return the tree-sitter-fold overlay at NODE if NODE is foldable and folded.  Return nil otherwise."
   (-when-let* ((foldable-types (alist-get major-mode tree-sitter-fold-foldable-node-alist))
-               (_ (memq (treesit-node-type node) foldable-types))
+               (_ (member (treesit-node-type node) foldable-types))
                (range (tree-sitter-fold--get-fold-range node)))
     (thread-last (overlays-in (car range) (cdr range))
                  (seq-filter (lambda (ov)
@@ -186,10 +186,10 @@ If the current node is not folded or not foldable, do nothing."
   "Fold all foldable syntax nodes in the buffer."
   (interactive)
   (tree-sitter-fold--ensure-ts
-    (let* ((patterns (seq-mapcat (lambda (type) `(,(list type) @name))
+    (let* ((patterns (seq-mapcat (lambda (type) `(,(list (make-symbol type)) @name))
                                  (alist-get major-mode tree-sitter-fold-foldable-node-alist)
                                  'vector))
-           (nodes-to-fold (treesit-query-capture node query)))
+           (nodes-to-fold (treesit-query-capture (treesit-buffer-root-node) (treesit-pattern-expand patterns))))
       (thread-last nodes-to-fold
                    (mapcar #'cdr)
                    (mapc #'tree-sitter-fold-close)))))
