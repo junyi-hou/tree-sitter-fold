@@ -31,6 +31,7 @@
 (defcustom tree-sitter-fold-foldable-node-alist
   '((python-ts-mode . ("function_definition" "class_definition"))
     (yaml-ts-mode . ("block_mapping_pair"))
+    (json-ts-mode . ("object" "array"))
     (go-ts-mode . ("type_declaration" "function_declaration" "method_declaration"))
     (nix-ts-mode . ("rec_attrset_expression" "attrset_expression" "function_expression")))
   "An alist of (mode . (list of tree-sitter-nodes considered foldable in this mode))."
@@ -44,6 +45,8 @@
                     ("attrset_expression" . tree-sitter-fold-range-nix-attrset)
                     ("function_expression" . tree-sitter-fold-range-nix-function)))
     (yaml-ts-mode . (("block_mapping_pair" . tree-sitter-fold-range-yaml)))
+    (json-ts-mode . (("object" . tree-sitter-fold-range-json)
+                     ("array" . tree-sitter-fold-range-json)))
     (go-ts-mode . (("type_declaration" . tree-sitter-fold-range-go-type-declaration)
                    ("function_declaration" . tree-sitter-fold-range-go-method)
                    ("method_declaration" . tree-sitter-fold-range-go-method))))
@@ -200,8 +203,8 @@ If the current node is not folded or not foldable, do nothing."
   (interactive)
   (tree-sitter-fold--ensure-ts
     (thread-last (overlays-in (point-min) (point-max))
-      (seq-filter (lambda (ov) (eq (overlay-get ov 'invisible) 'tree-sitter-fold)))
-      (mapc #'delete-overlay))))
+                 (seq-filter (lambda (ov) (eq (overlay-get ov 'invisible) 'tree-sitter-fold)))
+                 (mapc #'delete-overlay))))
 
 (defun tree-sitter-fold-toggle ()
   "Toggle the syntax node at `point'.
@@ -229,10 +232,14 @@ If the current syntax node is not foldable, do nothing."
     (cons beg end)))
 
 (defun tree-sitter-fold-range-yaml (node)
-  "Return the fold range for yaml."
+  "Return the fold range for yaml `block_mapping_pair' NODE."
   (let* ((key-node (treesit-node-child-by-field-name node "key"))
          (value-node (treesit-node-child-by-field-name node "value")))
     (cons (1+ (treesit-node-end key-node)) (treesit-node-end value-node))))
+
+(defun tree-sitter-fold-range-json (node)
+  "Return the fold range for json `object' and `array' NODE."
+  (cons (treesit-node-end (treesit-node-child node 0)) (1- (treesit-node-end node))))
 
 (defun tree-sitter-fold-range-nix-attrset (node)
   "Return the fold range for `attrset_expression' and `rec_attrset_expression' NODE in Nix."
