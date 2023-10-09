@@ -52,6 +52,7 @@ This variable determines how ~tree-sitter-fold~ should fold each of the nodes de
 - Nix
 - YAML
 - JSON
+- Protobuf
 - Go (thanks to [[https://github.com/jakejx][jakejx]])
 - contribution of other languages are welcomed!
 

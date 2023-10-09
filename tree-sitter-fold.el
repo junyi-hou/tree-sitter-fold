@@ -32,6 +32,7 @@
   '((python-ts-mode . ("function_definition" "class_definition"))
     (yaml-ts-mode . ("block_mapping_pair"))
     (json-ts-mode . ("object" "array"))
+    (protobuf-ts-mode . ("message_body" "enum_body"))
     (go-ts-mode . ("type_declaration" "function_declaration" "method_declaration"))
     (nix-ts-mode . ("rec_attrset_expression" "attrset_expression" "function_expression")))
   "An alist of (mode . (list of tree-sitter-nodes considered foldable in this mode))."
@@ -47,6 +48,8 @@
     (yaml-ts-mode . (("block_mapping_pair" . tree-sitter-fold-range-yaml)))
     (json-ts-mode . (("object" . tree-sitter-fold-range-json)
                      ("array" . tree-sitter-fold-range-json)))
+    (protobuf-ts-mode . (("message_body" . tree-sitter-fold-range-protobuf)
+                         ("enum_body" . tree-sitter-fold-range-protobuf)))
     (go-ts-mode . (("type_declaration" . tree-sitter-fold-range-go-type-declaration)
                    ("function_declaration" . tree-sitter-fold-range-go-method)
                    ("method_declaration" . tree-sitter-fold-range-go-method))))
@@ -239,6 +242,10 @@ If the current syntax node is not foldable, do nothing."
 
 (defun tree-sitter-fold-range-json (node)
   "Return the fold range for json `object' and `array' NODE."
+  (cons (treesit-node-end (treesit-node-child node 0)) (1- (treesit-node-end node))))
+
+(defun tree-sitter-fold-range-protobuf (node)
+  "Return the fold range for protobuf `{enum,message}_body' NODE."
   (cons (treesit-node-end (treesit-node-child node 0)) (1- (treesit-node-end node))))
 
 (defun tree-sitter-fold-range-nix-attrset (node)
