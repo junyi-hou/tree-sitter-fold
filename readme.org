@@ -34,6 +34,10 @@ The idea of ~tree-sitter-fold~ is very simple: it gets the minimal grammar node 
 
 ~tree-sitter-fold-open-all~: open all folded syntax nodes in the current buffer.
 
+* Grammar Version
+
+Many tree-sitter grammars are still in active development and thus may experience breaking changes in the future. Those potential breaking changes can cause problems for ~tree-sitter-fold~. To ensure compatibility, ~tree-sitter-fold~ pins the supported tree-sitter grammars in the ~tree-sitter-fold-lang-revision.el~.
+
 * Customization
 
 ~tree-sitter-fold~ allows user-defined rules of how to fold syntax nodes. Two variables determine which node is foldable and how ~tree-sitter-fold~ should fold those nodes. I only implement folding mechanisms for ~python~. Contribution on other types of folds and for other major modes are welcome.

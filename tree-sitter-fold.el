@@ -3,21 +3,23 @@
 ;; Copyright (C) 2023  Junyi Hou
 ;;
 ;; Author: Junyi Hou <junyi.yi.hou@gmail.com>
-;; Version: 0.2
-;; Package-Requires: ((emacs "29.1") (dash "2.19.0"))
+;; Version: 0.3
+;; Package-Requires: ((emacs "29.1") (dash "2.19.0") (treesit-auto "0.6.4"))
 ;; SPDX-License-Identifier: MIT
 
 ;;; Commentary:
 
 ;; This package provides a code-folding mechanism based on tree-sitter
-;; package. Turn on the minor-mode `tree-sitter-fold-mode' to enable
-;; this mechanism. Note that all functionalities provided here based on the
+;; package.  Turn on the minor-mode `tree-sitter-fold-mode' to enable
+;; this mechanism.  Note that all functionalities provided here based on the
 ;; `tree-sitter-mode', and thus it should be enabled before
 ;; `tree-sitter-fold-mode' can properly fold codes.
 
 ;;; Code:
 (require 'treesit)
 (require 'dash)
+
+(require 'tree-sitter-fold-lang-revision)
 
 ;; =============
 ;; customization
