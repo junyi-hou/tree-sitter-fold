@@ -28,6 +28,7 @@
       :ts-mode 'nix-ts-mode
       :remap 'nix-mode
       :url "https://github.com/nix-community/tree-sitter-nix"
+      :ext "\\.nix\\'"
       :revision "66e3e9ce9180ae08fc57372061006ef83f0abde7"))
   "Additional recipes to be added to `treesit-auto-recipe-list'.")
 
