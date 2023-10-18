@@ -35,6 +35,7 @@
     (yaml-ts-mode . ("block_mapping_pair"))
     (json-ts-mode . ("object" "array"))
     (protobuf-ts-mode . ("message_body" "enum_body"))
+    (java-ts-mode . ("class_declaration" "method_declaration"))
     (go-ts-mode . ("type_declaration" "function_declaration" "method_declaration"))
     (nix-ts-mode . ("rec_attrset_expression" "attrset_expression" "function_expression")))
   "An alist of (mode . (list of tree-sitter-nodes considered foldable in this mode))."
@@ -50,6 +51,8 @@
     (yaml-ts-mode . (("block_mapping_pair" . tree-sitter-fold-range-yaml)))
     (json-ts-mode . (("object" . tree-sitter-fold-range-json)
                      ("array" . tree-sitter-fold-range-json)))
+    (java-ts-mode . (("class_declaration" . tree-sitter-fold-range-java)
+                     ("method_declaration" . tree-sitter-fold-range-java)))
     (protobuf-ts-mode . (("message_body" . tree-sitter-fold-range-protobuf)
                          ("enum_body" . tree-sitter-fold-range-protobuf)))
     (go-ts-mode . (("type_declaration" . tree-sitter-fold-range-go-type-declaration)
@@ -245,6 +248,19 @@ If the current syntax node is not foldable, do nothing."
 (defun tree-sitter-fold-range-json (node)
   "Return the fold range for json `object' and `array' NODE."
   (cons (treesit-node-end (treesit-node-child node 0)) (1- (treesit-node-end node))))
+
+(defun tree-sitter-fold-range-java (node)
+  "Return the fold range for java `{class,method}_declaration' NODE."
+  (let* ((inner-node (pcase node
+                       ((app treesit-node-type "class_declaration") "class_body")
+                       ((app treesit-node-type "method_declaration") "block")))
+         (beg (thread-first node
+                            (treesit-filter-child (lambda (it) (string= inner-node (treesit-node-type it))))
+                            car
+                            treesit-node-start
+                            1+))
+         (end (1- (treesit-node-end node))))
+    (cons beg end)))
 
 (defun tree-sitter-fold-range-protobuf (node)
   "Return the fold range for protobuf `{enum,message}_body' NODE."

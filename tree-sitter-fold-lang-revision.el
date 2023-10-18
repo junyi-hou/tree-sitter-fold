@@ -19,6 +19,7 @@
     (yaml . "0e36bed171768908f331ff7dff9d956bae016efb")
     (json . "3fef30de8aee74600f25ec2e319b62a1a870d51e")
     (proto . "42d82fa18f8afe59b5fc0b16c207ee4f84cb185f")
+    (java . "2b57cd9541f9fd3a89207d054ce8fbe72657c444")
     (go . "v0.20.0"))
   "An alist of (LANG . REVISION) that specifies the revision for that language.")
 
