@@ -54,7 +54,6 @@
     (apply fn args)))
 
 
-
 ;; update treesit-auto-recipe-list to include the revision of the grammar
 (with-eval-after-load 'treesit-auto
   ;; add additional recipes
@@ -67,7 +66,10 @@
 
 
   ;; support using commit hash in the recipe
-  (advice-add #'treesit--call-process-signal :around #'tree-sitter-fold--maybe-run-checkout))
+  (advice-add #'treesit--call-process-signal :around #'tree-sitter-fold--maybe-run-checkout)
+
+  ;; make sure the added recipe get picked up by treesit
+  (setq treesit-language-source-alist (treesit-auto--build-treesit-source-alist)))
 
 (provide 'tree-sitter-fold-lang-revision)
 ;;; tree-sitter-fold-lang-revision.el ends here
